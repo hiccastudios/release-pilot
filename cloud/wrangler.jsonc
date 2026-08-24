@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json.schemastore.org/wrangler.json",
+  "name": "release-pilot-research",
+  "main": "src/worker.mjs",
+  "compatibility_date": "2026-08-24",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  }
+}

@@ -16,7 +16,7 @@ Buka `index.html` di browser, atau jalankan server statis lokal seperti `npx ser
 
 ### Song Research
 
-Isi judul, artis (bila tahu), dan brief seperti potongan lirik atau tahun rilis, lalu pilih **Cari referensi**. Fitur ini mencari kandidat rekaman di MusicBrainz saat perangkat memiliki internet dan memberi tautan bukti per kandidat. Ia dapat mengisikan judul track dari kandidat terpilih, tetapi **tidak pernah mengisi pencipta lagu secara otomatis**: kredit penulis perlu diverifikasi dari sumber resmi (metadata label, PRO/publisher, atau kredit album) sebelum Anda memasukkannya.
+Isi brief bila ada, lalu pilih **Riset track ini** atau **Riset semua lagu**. Worker mencari referensi Google/Google News dan Wikipedia Indonesia, menampilkan beberapa kandidat beserta sumber, dan baru mengisi judul serta pencipta setelah pengguna memilih. Bila tidak ditemukan tersedia pilihan `Anonim`; gunakan `Publik Domain` hanya bila status hak cipta memang telah dipastikan.
 
 ## Jalur Cloudflare + GitHub
 

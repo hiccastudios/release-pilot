@@ -11,6 +11,7 @@
 .track { padding:8px 10px; min-height:52px }.track span { font-size:.82rem; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }.track small { font-size:.7rem; white-space:nowrap }
 .research-actions { display:flex; gap:8px; flex-wrap:wrap }.copy-button { width:100%; margin-top:4px; font-size:.76rem; padding:9px }
 .track { position:relative }.track em { position:absolute; right:8px; bottom:7px; color:#75829a; font-size:.58rem; font-style:normal }.track.researched { border-color:#287553; background:#10271f }.track.researched em { color:#73e5ac }.track.researched small { color:#a5d8bc }
+.research-track { padding:15px 0; border-bottom:1px solid var(--line) }.research-track h3 { margin:0 0 7px; color:#f4f1ff }.source-list { display:flex; flex-wrap:wrap; gap:7px; margin:10px 0 }.source-list a { display:inline-block; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; border:1px solid #344159; border-radius:7px; padding:6px 9px; color:#ae8aff; font-size:.76rem }.fallback-actions { display:flex; gap:8px; flex-wrap:wrap }.fallback-actions button { padding:7px 10px; font-size:.75rem }.no-match { color:#aeb8cc; font-size:.85rem }
 .song-metadata{display:grid;gap:7px}.song-row{display:grid;grid-template-columns:32px 1.3fr 1fr .8fr;gap:7px;align-items:center}.song-row b{color:#ae8aff;text-align:center}.song-row input{margin:0;padding:8px;font-size:.8rem}@media(max-width:700px){.song-row{grid-template-columns:25px 1fr}.song-row input:last-child{grid-column:2}}
 
 /* Wizard field layout */
