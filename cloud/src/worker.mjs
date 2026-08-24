@@ -85,8 +85,9 @@ function writerFromHeadline(headline = "") {
 function credibleWriter(writer, title) {
   const value = clean(writer).replace(/\s+(?:yang|dan lagu|untuk|pada|dengan)\b.*$/i, "").trim();
   const normalized = compactTitle(value);
-  if (!value || normalized === compactTitle(title) || value.length > 60) return "";
-  if (/^(?:lagu|anak|anak-anak|indonesia|siapa|dudidam|du di dam)\b/i.test(value)) return "";
+  const normalizedTitle = compactTitle(title);
+  if (!value || normalized === normalizedTitle || normalized.includes(normalizedTitle) || value.length > 60) return "";
+  if (/^(?:lagu|anak|anak-anak|indonesia|siapa)\b|\b(?:adalah|ialah|siapa)$|^(?:judul|pencipta)\b/i.test(value)) return "";
   return value;
 }
 
@@ -101,6 +102,30 @@ function verifiedReference(title) {
   };
   const match = references[compactTitle(title)];
   return match ? [match] : [];
+}
+
+function clueReference(title, brief) {
+  const text = clean(brief);
+  if (!text) return [];
+  const protectedText = text
+    .replace(/\b([A-Z])\.(?=[A-Z]\.)/g, "$1§")
+    .replace(/\b([A-Z])\.(?=\s+[A-Z][a-z])/g, "$1§");
+  const writerMatch = protectedText.match(/pencipta(?:\s+lagu)?(?:nya)?[^.]{0,180}?\s(?:adalah|ialah|:|-)\s*([\p{L}][\p{L}\p{N}§'’ -]{1,70}?)(?=\.(?:\s+[A-Z]|$)|$)/iu);
+  const writerFromClue = writerMatch?.[1]?.replace(/§/g, ".") || possibleWriter(text);
+  const writer = credibleWriter(writerFromClue, title);
+  if (!writer) return [];
+  const namedTitle = text.match(/pencipta(?:\s+lagu)?\s*["“']([^"”']{2,90})["”']/i)?.[1];
+  const candidateTitle = namedTitle && (
+    compactTitle(namedTitle).includes(compactTitle(title)) || compactTitle(title).includes(compactTitle(namedTitle))
+  ) ? titleCase(namedTitle) : title;
+  return [{
+    title: candidateTitle,
+    songwriter: writer,
+    sourceTitle: "Kandidat dari clue / AI Overview yang Anda tulis",
+    sourceUrl: `https://www.google.com/search?q=${encodeURIComponent(`pencipta lagu ${candidateTitle} ${writer}`)}`,
+    snippet: text.slice(0, 260),
+    source: "Clue pengguna — perlu verifikasi",
+  }];
 }
 
 function writerBesideTitle(text, title) {
@@ -145,7 +170,8 @@ async function wikipedia(title) {
 }
 
 async function googleNews(title, brief) {
-  const queries = [`pencipta lagu ${title}`];
+  const quotedClue = clean(brief).match(/["“']([^"”']{5,100})["”']/)?.[1] || "";
+  const queries = [`pencipta lagu ${title}${quotedClue ? ` \"${quotedClue}\"` : ""}`];
   const settled = await Promise.allSettled(queries.map(query => fetchText(`https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=id&gl=ID&ceid=ID:id`, "application/rss+xml, application/xml, text/xml", 15000)));
   const feeds = settled.flatMap(result => result.status === "fulfilled" ? [result.value] : []);
   const items = feeds.flatMap(xml => [...xml.matchAll(/<item>([\s\S]*?)<\/item>/gi)].slice(0, 8).map(match => {
@@ -203,7 +229,8 @@ export default {
       if (!originalTitle) return json({ error: "Judul wajib diisi." }, 400, origin);
       const title = likelyTitle(originalTitle);
       const settled = await Promise.allSettled([googleNews(title, brief), wikipedia(title), googleSuggestions(title)]);
-      const raw = [...verifiedReference(title), ...settled.flatMap(result => result.status === "fulfilled" ? result.value : [])];
+      const researched = [...verifiedReference(title), ...settled.flatMap(result => result.status === "fulfilled" ? result.value : [])];
+      const raw = researched.some(item => item.songwriter) ? researched : [...clueReference(title, brief), ...researched];
       const seen = new Set();
       const candidates = raw
         .filter(item => item.sourceUrl && !seen.has(item.sourceUrl) && seen.add(item.sourceUrl))
