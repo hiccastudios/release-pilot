@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Release Pilot — Amuse Prep</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header>
+        <div class="brand"><span class="brand-mark">♫</span><div><strong>Hicca Release</strong><small>v0.1 · Offline release preparation</small></div></div>
+        <p class="eyebrow">OFFLINE RELEASE ASSISTANT</p>
+        <h1>Release Pilot</h1>
+        <p class="lede">Siapkan rilis Amuse dengan metadata rapi, validasi aset, dan paket yang siap ditinjau.</p>
+      </header>
+
+      <section class="notice" aria-label="Status integrasi">
+        <span class="dot"></span><strong>Mode lokal aktif.</strong> Tidak ada lagu atau kredensial yang diunggah. Setelah ditinjau, ekspor paket untuk diisi/diunggah di Amuse.
+      </section>
+
+      <nav class="steps" aria-label="Tahapan rilis">
+        <span class="active" data-step-indicator="1">1. Folder & riset</span><span data-step-indicator="2">2. Identitas rilis</span><span data-step-indicator="3">3. Metadata lagu</span><span data-step-indicator="4">4. Distributor</span>
+      </nav>
+
+      <form id="release-form">
+        <section class="card folder-import" data-wizard="1">
+          <p class="eyebrow">1. PILIH FOLDER RILIS</p>
+          <h2>Biarkan agent membaca folder Anda</h2>
+          <p class="hint">Pilih satu folder berisi audio dan artwork. Format nama yang paling mudah dibaca: <code>Nama Artis - Judul Lagu.wav</code>.</p>
+          <label class="folder-button">Pilih folder <input id="release-folder" type="file" webkitdirectory directory multiple /></label>
+          <div id="folder-status" class="asset-status">Belum ada folder dipilih.</div>
+          <div id="track-list" class="track-list" hidden></div>
+        </section>
+        <section class="card researcher" data-wizard="1">
+          <div class="research-head">
+            <div>
+              <p class="eyebrow">AI-ASSISTED RESEARCH</p>
+              <h2>Riset Google: judul & pencipta lagu</h2>
+              <p class="hint">Nama file dipakai sebagai judul dasar. Buka hasil Google, lalu pilih dan masukkan kredit yang telah Anda verifikasi.</p>
+            </div>
+            <div class="research-actions"><button type="button" id="research" class="primary">Buat pencarian track</button><button type="button" id="research-all">Buat pencarian semua lagu</button></div>
+          </div>
+          <label>Brief lagu / petunjuk <textarea name="researchBrief" rows="3" placeholder="Contoh: lagu pop Indonesia, refrain berbunyi ‘…’, dinyanyikan oleh …, rilis sekitar 2024"></textarea></label>
+          <div id="research-status" class="asset-status">Gunakan judul rilis dan artis utama sebagai titik awal pencarian.</div>
+          <div id="research-results" class="research-results" hidden></div>
+        </section>
+        <div class="grid" data-wizard="2">
+          <section class="card">
+            <h2>Identitas rilis</h2>
+            <label>Judul rilis <input name="title" required placeholder="Contoh: Senja di Kota" /></label>
+            <label>Artis utama <input name="primaryArtist" required placeholder="Nama artis" /></label>
+            <label>Jenis rilis
+              <select name="releaseType"><option>Single</option><option>EP</option><option>Album</option></select>
+            </label>
+            <label>Tanggal rilis <input type="date" name="releaseDate" required /></label>
+            <label>Bahasa utama
+              <select name="language"><option value="id">Indonesia</option><option value="en">English</option><option value="es">Español</option><option value="other">Lainnya</option></select>
+            </label>
+            <label>Genre <input name="genre" required placeholder="Contoh: Pop" /></label>
+            <label>Subgenre <input name="subgenre" placeholder="Opsional" /></label>
+            <label>Produser <input name="producers" placeholder="Berlaku untuk semua lagu; pisahkan dengan koma" /></label>
+            <label>Baris label / ℗ <input name="pLine" required placeholder="℗ 2026 Nama Pemilik" /></label>
+            <label>Baris hak cipta / © <input name="cLine" required placeholder="© 2026 Nama Pemilik" /></label>
+            <label class="check"><input type="checkbox" name="explicit" /> Konten eksplisit</label>
+          </section>
+
+        </div>
+        <div class="grid" data-wizard="3">
+          <section class="card song-editor">
+            <h2>Metadata semua lagu</h2>
+            <p class="hint">Lengkapi judul dan pencipta tiap lagu. ISRC opsional.</p>
+            <div id="song-metadata" class="song-metadata"></div>
+            <input name="trackTitle" type="hidden" /><input name="songwriters" type="hidden" /><input name="isrc" type="hidden" />
+          </section>
+        </div>
+
+        <section class="card assets" data-wizard="3">
+          <h2>Aset lokal</h2>
+          <div class="asset-grid">
+            <label>File audio <input id="audio" type="file" accept="audio/wav,audio/x-wav,audio/flac,audio/mpeg,audio/mp4" /></label>
+            <label>Cover artwork <input id="artwork" type="file" accept="image/jpeg,image/png" /></label>
+          </div>
+          <p class="hint">Audio dan cover dari folder yang dipilih otomatis digunakan. Pilihan manual ini hanya cadangan bila Anda tidak menggunakan folder.</p>
+          <div id="asset-status" class="asset-status">Belum ada aset dipilih.</div>
+        </section>
+
+        <section class="card distributor" data-wizard="4">
+          <p class="eyebrow">4. DISTRIBUTOR</p>
+          <h2>Pilih tujuan distribusi</h2>
+          <p class="hint">Paket akan disiapkan untuk distributor yang dipilih. Pengiriman akhir dilakukan setelah Anda masuk dan meninjau akun distributor.</p>
+          <div class="distributor-options">
+            <label class="choice"><input type="radio" name="distributor" value="Amuse" checked /> <span><strong>Amuse</strong><small>Siapkan paket upload Amuse</small></span></label>
+            <label class="choice"><input type="radio" name="distributor" value="Other" /> <span><strong>Distributor lain</strong><small>Ekspor metadata generik</small></span></label>
+          </div>
+        </section>
+
+        <section class="card review" data-wizard="4">
+          <div><h2>Review kesiapan</h2><p id="readiness">Lengkapi data untuk memeriksa kesiapan.</p></div>
+          <div class="actions"><label class="check"><input type="checkbox" name="original" /> Saya memegang hak distribusi.</label><button type="button" id="save">Simpan draft</button><button type="button" id="export" class="primary">Ekspor paket rilis</button></div>
+        </section>
+        <div class="wizard-actions">
+          <button type="button" id="previous">Kembali</button><button type="button" id="next" class="primary">Lanjut ke identitas rilis</button>
+        </div>
+      </form>
+
+      <section class="card integration">
+        <h2>Jalur online nanti</h2>
+        <p>GitHub menyimpan kode dan template. Cloudflare Pages menyajikan dashboard; Worker + D1/R2 menyimpan draft dan aset terenkripsi. Sambungan ke Amuse sebaiknya melalui alur resmi atau browser-assisted dengan langkah kirim akhir tetap di tangan Anda.</p>
+      </section>
+    </main>
+    <script src="main.js"></script>
+  </body>
+</html>
