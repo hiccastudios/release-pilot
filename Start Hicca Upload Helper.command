@@ -6,6 +6,11 @@ if ! command -v node >/dev/null 2>&1; then
   read -k 1 "?Tekan tombol apa saja untuk menutup..."
   exit 1
 fi
+if /usr/bin/curl --silent --fail --max-time 2 -H "Origin: https://release.hiccastudios.my.id" http://127.0.0.1:47831/health >/dev/null 2>&1; then
+  echo "Hicca Upload Helper sudah aktif. Anda dapat kembali ke Release Pilot."
+  read -k 1 "?Tekan tombol apa saja untuk menutup jendela ini..."
+  exit 0
+fi
 if [[ ! -d node_modules/playwright ]]; then
   echo "Menyiapkan Hicca Upload Helper untuk pertama kali..."
   if command -v pnpm >/dev/null 2>&1; then pnpm install; else npm install; fi

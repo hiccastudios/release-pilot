@@ -18,6 +18,7 @@ const headers = origin => ({
   "access-control-allow-origin": origins.has(origin) ? origin : "https://release.hiccastudios.my.id",
   "access-control-allow-methods": "GET, POST, OPTIONS",
   "access-control-allow-headers": "content-type",
+  "access-control-allow-private-network": "true",
   "cache-control": "no-store",
 });
 
