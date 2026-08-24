@@ -16,11 +16,11 @@
       </header>
 
       <section class="notice" aria-label="Status integrasi">
-        <span class="dot"></span><strong>Mode lokal aktif.</strong> Tidak ada lagu atau kredensial yang diunggah. Setelah ditinjau, ekspor paket untuk diisi/diunggah di Amuse.
+        <span class="dot"></span><strong>Mode persiapan aman.</strong> Metadata disimpan lokal. Setelah ekspor, aplikasi meneruskan Anda ke web uploader resmi Amuse untuk memilih file dan mengonfirmasi pengiriman.
       </section>
 
       <nav class="steps" aria-label="Tahapan rilis">
-        <span class="active" data-step-indicator="1">1. Folder & riset</span><span data-step-indicator="2">2. Identitas rilis</span><span data-step-indicator="3">3. Metadata lagu</span><span data-step-indicator="4">4. Distributor</span>
+        <button type="button" class="active" data-step-indicator="1">1. Folder & riset</button><button type="button" data-step-indicator="2">2. Identitas rilis</button><button type="button" data-step-indicator="3">3. Metadata lagu</button><button type="button" data-step-indicator="4">4. Distributor</button>
       </nav>
 
       <form id="release-form">
@@ -97,7 +97,8 @@
 
         <section class="card review" data-wizard="4">
           <div><h2>Review kesiapan</h2><p id="readiness">Lengkapi data untuk memeriksa kesiapan.</p></div>
-          <div class="actions"><label class="check"><input type="checkbox" name="original" /> Saya memegang hak distribusi.</label><button type="button" id="save">Simpan draft</button><button type="button" id="export" class="primary">Ekspor paket rilis</button></div>
+          <div class="actions"><label class="check"><input type="checkbox" name="original" /> Saya memegang hak distribusi.</label><button type="button" id="save">Simpan draft</button><button type="button" id="export" class="primary">Ekspor & lanjut ke Amuse</button></div>
+          <p id="draft-status" class="draft-status" aria-live="polite"></p>
         </section>
         <div class="wizard-actions">
           <button type="button" id="previous">Kembali</button><button type="button" id="next" class="primary">Lanjut ke identitas rilis</button>
@@ -105,8 +106,8 @@
       </form>
 
       <section class="card integration">
-        <h2>Jalur online nanti</h2>
-        <p>GitHub menyimpan kode dan template. Cloudflare Pages menyajikan dashboard; Worker + D1/R2 menyimpan draft dan aset terenkripsi. Sambungan ke Amuse sebaiknya melalui alur resmi atau browser-assisted dengan langkah kirim akhir tetap di tangan Anda.</p>
+        <h2>Alur pengiriman Amuse</h2>
+        <p>Release Pilot mengunduh paket metadata lalu membuka web uploader resmi Amuse. Karena Amuse tidak menyediakan API upload publik untuk aplikasi ini, pemilihan audio/cover, login, dan tombol Submit Release tetap dilakukan di Amuse.</p>
       </section>
     </main>
     <script src="main.js"></script>
