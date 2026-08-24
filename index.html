@@ -93,11 +93,16 @@
             <label class="choice"><input type="radio" name="distributor" value="Amuse" checked /> <span><strong>Amuse</strong><small>Siapkan paket upload Amuse</small></span></label>
             <label class="choice"><input type="radio" name="distributor" value="Other" /> <span><strong>Distributor lain</strong><small>Ekspor metadata generik</small></span></label>
           </div>
+          <div class="helper-panel">
+            <div><strong>Hicca Upload Helper</strong><small>Browser lokal · berhenti sebelum Submit Release</small></div>
+            <span id="helper-status" class="helper-state">Memeriksa helper…</span>
+            <button type="button" id="helper-continue" hidden>Lanjutkan setelah login</button>
+          </div>
         </section>
 
         <section class="card review" data-wizard="4">
           <div><h2>Review kesiapan</h2><p id="readiness">Lengkapi data untuk memeriksa kesiapan.</p></div>
-          <div class="actions"><label class="check"><input type="checkbox" name="original" /> Saya memegang hak distribusi.</label><button type="button" id="save">Simpan draft</button><button type="button" id="export" class="primary">Ekspor & lanjut ke Amuse</button></div>
+          <div class="actions"><label class="check"><input type="checkbox" name="original" /> Saya memegang hak distribusi.</label><button type="button" id="save">Simpan draft</button><button type="button" id="export">Ekspor paket</button><button type="button" id="helper-upload" class="primary">Isi & upload ke Amuse</button></div>
           <p id="draft-status" class="draft-status" aria-live="polite"></p>
         </section>
         <div class="wizard-actions">

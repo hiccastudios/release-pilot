@@ -26,3 +26,6 @@
 .review { display:grid; grid-template-columns:1fr auto; gap:12px 24px }
 .review .draft-status { grid-column:1/-1; color:#91d8b2; font-size:.78rem; min-height:1.2em }
 @media(max-width:700px){.review{grid-template-columns:1fr}.review .draft-status{grid-column:1}}
+.helper-panel { display:grid; grid-template-columns:1fr auto auto; gap:10px; align-items:center; margin-top:16px; padding:13px; border:1px solid #344159; border-radius:9px; background:#0c121d }
+.helper-panel strong,.helper-panel small { display:block }.helper-panel small { color:var(--muted); font-size:.72rem }.helper-state { color:#d1bfff; font-size:.76rem }.helper-state.ready { color:#79dfaa }.helper-state.error { color:#ff9eaa }
+@media(max-width:700px){.helper-panel{grid-template-columns:1fr}.helper-panel button{width:100%}}
