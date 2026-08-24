@@ -81,4 +81,7 @@ server.on("error", error => {
   else console.error(`Helper gagal dimulai: ${error.message}`);
   process.exitCode = 1;
 });
-server.listen(PORT, HOST, () => console.log(`Hicca Upload Helper aktif di http://${HOST}:${PORT}`));
+server.listen(PORT, HOST, () => {
+  console.log(`Hicca Upload Helper aktif di http://${HOST}:${PORT}`);
+  void execFileAsync("/usr/bin/open", ["-a", "Google Chrome", "https://release.hiccastudios.my.id/"]).catch(() => {});
+});

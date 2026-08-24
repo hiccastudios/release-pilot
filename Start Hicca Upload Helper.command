@@ -7,7 +7,8 @@ if ! command -v node >/dev/null 2>&1; then
   exit 1
 fi
 if /usr/bin/curl --silent --fail --max-time 2 -H "Origin: https://release.hiccastudios.my.id" http://127.0.0.1:47831/health >/dev/null 2>&1; then
-  echo "Hicca Upload Helper sudah aktif. Anda dapat kembali ke Release Pilot."
+  echo "Hicca Upload Helper sudah aktif. Membuka Release Pilot di Google Chrome..."
+  /usr/bin/open -a "Google Chrome" "https://release.hiccastudios.my.id/"
   read -k 1 "?Tekan tombol apa saja untuk menutup jendela ini..."
   exit 0
 fi
