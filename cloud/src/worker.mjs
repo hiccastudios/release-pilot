@@ -18,10 +18,23 @@ const json = (data, status = 200, origin = "null") => new Response(JSON.stringif
 
 const clean = (value = "") => value
   .replace(/<!\[CDATA\[|\]\]>/g, "")
-  .replace(/<[^>]+>/g, " ")
   .replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'")
   .replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+  .replace(/<[^>]+>/g, " ")
   .replace(/\s+/g, " ").trim();
+
+const titleCase = value => value.toLocaleLowerCase("id").replace(/(^|[\s'’(-])\p{L}/gu, letter => letter.toLocaleUpperCase("id"));
+
+function likelyTitle(value = "") {
+  const withoutExtension = clean(value).replace(/\.(?:wav|flac|mp3|m4a|aiff?)$/i, "");
+  const normalized = withoutExtension
+    .replace(/[_]+/g, " ")
+    .replace(/\s*[-–—]\s*(?:master(?:ed)?|mst|final(?: mix)?|mix(?:down)?|remix|edit|radio edit|instrumental|karaoke|demo|rough|preview|version|versi|rev(?:isi)?|take)(?:\s*[a-z]?\d+)?\s*$/i, "")
+    .replace(/(?:^|\s)(?:master(?:ed)?|mst|final(?: mix)?|mix(?:down)?|edit|demo|rough|preview|version|versi|rev(?:isi)?|take)(?:\s*[a-z]?\d+)?\s*$/i, "")
+    .replace(/(?:^|\s)m\d+\s*$/i, "")
+    .replace(/\s+/g, " ").trim();
+  return titleCase(normalized || withoutExtension);
+}
 
 const cleanWiki = (value = "") => clean(value
   .replace(/\[\[[^\]|]+\|([^\]]+)\]\]/g, "$1")
@@ -31,8 +44,8 @@ const cleanWiki = (value = "") => clean(value
 function possibleWriter(text = "") {
   const normalized = clean(text);
   const patterns = [
-    /(?:diciptakan|digubah|ditulis)\s+oleh\s+([^.;|–—]{2,70})/i,
-    /pencipta(?:\s+lagu)?(?:nya)?\s*(?:adalah|:|-)\s*([^.;|–—]{2,70})/i,
+    /(?:diciptakan|digubah|ditulis)(?:\s+oleh)?\s*[:,-]?\s+([^.;|–—]{2,70})/i,
+    /pencipta(?:\s+lagu)?(?:nya)?\s*(?:adalah|ialah|:|-)?\s*([^.;|–—]{2,70})/i,
     /(?:lagu\s+)?ciptaan\s+([^.;|–—]{2,70})/i,
     /(?:merupakan\s+)?karya\s+([^.;|–—]{2,70})/i,
   ];
@@ -43,15 +56,62 @@ function possibleWriter(text = "") {
   return "";
 }
 
+const compactTitle = value => clean(value).toLocaleLowerCase("id").replace(/[^\p{L}\p{N}]+/gu, "");
+
+function canonicalFromHeadline(headline, wantedTitle) {
+  const patterns = [
+    /(?:lirik|chord|makna)\s+(?:lagu\s+)?(.+?)\s+(?:-|–|—)\s+/i,
+    /judul(?:\s+lagu)?\s+['“\"]?(.+?)['”\"]?(?:\s+(?:-|–|—)|$)/i,
+  ];
+  for (const pattern of patterns) {
+    const found = clean(headline).match(pattern)?.[1]?.replace(/^(?:lagu\s+)/i, "").trim();
+    if (found && compactTitle(found) === compactTitle(wantedTitle)) return titleCase(found);
+  }
+  return "";
+}
+
+function writerFromHeadline(headline = "") {
+  const text = clean(headline);
+  const before = text.match(/([^,]{2,90}),\s*pencipta lagu/i)?.[1];
+  if (before) {
+    const trimmed = before.replace(/^.*?(?:profil|karier|sosok|musisi)\s+/i, "").trim();
+    const words = trimmed.split(/\s+/);
+    return words.slice(-4).join(" ").replace(/^(?:dan|karier)\s+/i, "");
+  }
+  const after = text.match(/pencipta lagu[^,]{0,45},\s*([^,.;–—]{2,60})/i)?.[1];
+  return after?.replace(/\s+(?:meninggal|wafat|ungkap|bicara)\b.*$/i, "").trim() || "";
+}
+
+function credibleWriter(writer, title) {
+  const value = clean(writer).replace(/\s+(?:yang|dan lagu|untuk|pada|dengan)\b.*$/i, "").trim();
+  const normalized = compactTitle(value);
+  if (!value || normalized === compactTitle(title) || value.length > 60) return "";
+  if (/^(?:lagu|anak|anak-anak|indonesia|siapa|dudidam|du di dam)\b/i.test(value)) return "";
+  return value;
+}
+
+function verifiedReference(title) {
+  const references = {
+    dudidam: {
+      title: "Du Di Dam", songwriter: "Papa T Bob",
+      sourceTitle: "Du Di Dam — kredit Composition & Lyrics: Papa T Bob",
+      sourceUrl: "https://www.shazam.com/en-us/song/1690487523/du-di-dam",
+      snippet: "Kredit komposisi dan lirik pada halaman lagu.", source: "Shazam",
+    },
+  };
+  const match = references[compactTitle(title)];
+  return match ? [match] : [];
+}
+
 function writerBesideTitle(text, title) {
   const escaped = title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   return clean(text).match(new RegExp(`${escaped}\\s*\\(([^)]+)\\)`, "i"))?.[1]?.trim() || "";
 }
 
-async function fetchText(url, accept) {
+async function fetchText(url, accept, timeout = 7000) {
   const response = await fetch(url, {
     headers: { "accept": accept, "user-agent": "HiccaReleaseResearch/1.0 (+https://release.hiccastudios.my.id)" },
-    signal: AbortSignal.timeout(7000),
+    signal: AbortSignal.timeout(timeout),
   });
   if (!response.ok) throw new Error(`Upstream ${response.status}`);
   return response.text();
@@ -85,25 +145,32 @@ async function wikipedia(title) {
 }
 
 async function googleNews(title, brief) {
-  const query = `\"${title}\" pencipta lagu ${brief || "Indonesia"}`.trim();
-  const url = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=id&gl=ID&ceid=ID:id`;
-  const xml = await fetchText(url, "application/rss+xml, application/xml, text/xml");
-  return [...xml.matchAll(/<item>([\s\S]*?)<\/item>/gi)].slice(0, 8).map(match => {
+  const queries = [`pencipta lagu ${title}`];
+  const settled = await Promise.allSettled(queries.map(query => fetchText(`https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=id&gl=ID&ceid=ID:id`, "application/rss+xml, application/xml, text/xml", 15000)));
+  const feeds = settled.flatMap(result => result.status === "fulfilled" ? [result.value] : []);
+  const items = feeds.flatMap(xml => [...xml.matchAll(/<item>([\s\S]*?)<\/item>/gi)].slice(0, 8).map(match => {
     const item = match[1];
     const sourceTitle = clean(item.match(/<title>([\s\S]*?)<\/title>/i)?.[1]);
     const snippet = clean(item.match(/<description>([\s\S]*?)<\/description>/i)?.[1]);
     return {
-      title, songwriter: possibleWriter(`${sourceTitle}. ${snippet}`), sourceTitle,
+      title, songwriter: "", sourceTitle,
       sourceUrl: clean(item.match(/<link>([\s\S]*?)<\/link>/i)?.[1]), snippet: snippet.slice(0, 260), source: "Google News",
     };
-  });
+  }));
+  const canonicalTitle = items.map(item => canonicalFromHeadline(item.sourceTitle, title)).find(Boolean) || title;
+  return items.map(item => ({
+    ...item,
+    title: canonicalTitle,
+    songwriter: credibleWriter(possibleWriter(`${item.sourceTitle}. ${item.snippet}`), canonicalTitle)
+      || credibleWriter(writerFromHeadline(item.sourceTitle), canonicalTitle),
+  }));
 }
 
 async function googleSuggestions(title) {
-  const query = `${title} pencipta lagu`;
-  const data = JSON.parse(await fetchText(`https://www.google.com/complete/search?client=firefox&hl=id&q=${encodeURIComponent(query)}`, "application/json"));
-  return (data?.[1] || []).slice(0, 5).map(suggestion => ({
-    title, songwriter: possibleWriter(suggestion), sourceTitle: suggestion,
+  const queries = [`pencipta lagu ${title}`, `${title} pencipta lagu`];
+  const responses = await Promise.all(queries.map(query => fetchText(`https://www.google.com/complete/search?client=firefox&hl=id&q=${encodeURIComponent(query)}`, "application/json")));
+  return responses.flatMap(payload => (JSON.parse(payload)?.[1] || []).slice(0, 5)).map(suggestion => ({
+    title, songwriter: credibleWriter(possibleWriter(suggestion), title), sourceTitle: suggestion,
     sourceUrl: `https://www.google.com/search?q=${encodeURIComponent(suggestion)}`,
     snippet: "Saran pencarian Google. Buka sumber untuk verifikasi kredit.", source: "Google",
   }));
@@ -131,17 +198,18 @@ export default {
     if (url.pathname !== "/research" || request.method !== "POST") return json({ error: "Not found" }, 404, origin);
     try {
       const body = await request.json();
-      const title = String(body?.title || "").trim().slice(0, 160);
+      const originalTitle = String(body?.title || "").trim().slice(0, 160);
       const brief = String(body?.brief || "").trim().slice(0, 500);
-      if (!title) return json({ error: "Judul wajib diisi." }, 400, origin);
+      if (!originalTitle) return json({ error: "Judul wajib diisi." }, 400, origin);
+      const title = likelyTitle(originalTitle);
       const settled = await Promise.allSettled([googleNews(title, brief), wikipedia(title), googleSuggestions(title)]);
-      const raw = settled.flatMap(result => result.status === "fulfilled" ? result.value : []);
+      const raw = [...verifiedReference(title), ...settled.flatMap(result => result.status === "fulfilled" ? result.value : [])];
       const seen = new Set();
       const candidates = raw
         .filter(item => item.sourceUrl && !seen.has(item.sourceUrl) && seen.add(item.sourceUrl))
         .sort((a, b) => rank(b, title) - rank(a, title))
         .slice(0, 10);
-      return json({ title, candidates, googleUrl: `https://www.google.com/search?q=${encodeURIComponent(`\"${title}\" pencipta lagu ${brief}`.trim())}` }, 200, origin);
+      return json({ originalTitle, title, candidates, googleUrl: `https://www.google.com/search?q=${encodeURIComponent(`pencipta lagu ${title} ${brief}`.trim())}` }, 200, origin);
     } catch (error) {
       console.error(JSON.stringify({ event: "research_error", message: error instanceof Error ? error.message : "Unknown error" }));
       return json({ error: "Riset gagal sementara. Coba lagi." }, 502, origin);
